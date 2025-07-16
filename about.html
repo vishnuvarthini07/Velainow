@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About – Velainow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Solid Blue Fixed Navigation Bar -->
+<!-- Fixed Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-blue-600 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold hover:text-yellow-300 transition">Velainow</a>
+    <div class="hidden md:flex space-x-6 font-medium">
+      <a href="index.html" class="hover:text-yellow-300 transition">Home</a>
+      <a href="about.html" class="hover:text-yellow-300 transition">About</a>
+      <a href="worker.html" class="hover:text-yellow-300 transition">Worker List</a>
+      <a href="login.html" class="hover:text-yellow-300 transition">Login</a>
+    </div>
+    <div class="md:hidden">
+      <button id="menuBtn" class="text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden bg-blue-700 px-4 py-3">
+    <a href="index.html" class="block py-2 hover:text-yellow-300">Home</a>
+    <a href="about.html" class="block py-2 hover:text-yellow-300">About</a>
+    <a href="worker.html" class="block py-2 hover:text-yellow-300">Worker List</a>
+    <a href="login.html" class="block py-2 hover:text-yellow-300">Login</a>
+  </div>
+</nav>
+
+<!-- Toggle Menu Script -->
+<script>
+  document.getElementById("menuBtn").addEventListener("click", () => {
+    document.getElementById("mobileMenu").classList.toggle("hidden");
+  });
+</script>
+
+<!-- Push content below navbar -->
+<style>
+  body {
+    padding-top: 16px; /* Adjust if nav height changes */
+  }
+</style>
+
+  <div class="max-w-4xl mx-auto p-6 mt-10 bg-white rounded-lg shadow-md">
+    <h1 class="text-3xl font-bold mb-4 text-blue-800">About Velainow</h1>
+    <p class="mb-4">Velainow is a hyperlocal job matching platform that intelligently connects clients to nearby skilled workers based on location and skills. Think Rapido/Ola – but for daily-wage or skill-based work like plumbing, electrical, delivery help, etc.</p>
+    <h2 class="text-xl font-semibold mt-6 mb-2">Key Features</h2>
+    <ul class="list-disc list-inside text-gray-700">
+      <li>Real-time task posting and worker registration</li>
+      <li>Auto-assignment of workers based on skill and pincode</li>
+      <li>Status update of worker (Available/Busy)</li>
+      <li>Built using Firebase (Realtime Database), Tailwind CSS, and Vanilla JS</li>
+    </ul>
+    <h2 class="text-xl font-semibold mt-6 mb-2">Why this matters?</h2>
+    <p class="mb-6">We aim to solve the everyday need of finding verified nearby help quickly, using simple but powerful tech in a student-built prototype for CodeCubicle 4.0.</p>
+    
+  </div>
+  <script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>
