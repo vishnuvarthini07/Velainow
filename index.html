@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velainow – Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+<!-- Fixed Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-blue-600 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold hover:text-yellow-300 transition">Velainow</a>
+    <div class="hidden md:flex space-x-6 font-medium">
+      <a href="index.html" class="hover:text-yellow-300 transition">Home</a>
+      <a href="about.html" class="hover:text-yellow-300 transition">About</a>
+      <a href="worker.html" class="hover:text-yellow-300 transition">Worker List</a>
+      <a href="login.html" class="hover:text-yellow-300 transition">Login</a>
+    </div>
+    <div class="md:hidden">
+      <button id="menuBtn" class="text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden bg-blue-700 px-4 py-3">
+    <a href="index.html" class="block py-2 hover:text-yellow-300">Home</a>
+    <a href="about.html" class="block py-2 hover:text-yellow-300">About</a>
+    <a href="worker.html" class="block py-2 hover:text-yellow-300">Worker List</a>
+    <a href="login.html" class="block py-2 hover:text-yellow-300">Login</a>
+  </div>
+</nav>
+
+<!-- Toggle script -->
+<script>
+  document.getElementById("menuBtn").addEventListener("click", () => {
+    document.getElementById("mobileMenu").classList.toggle("hidden");
+  });
+</script>
+
+<!-- Adjust for fixed nav -->
+<style> body { padding-top: 16px; } </style>
+
+<!-- Hero Section -->
+<section class="relative h-screen bg-cover bg-center" style="background-image: url('bg.png');">
+  <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center text-white text-center p-4">
+    <h1 class="text-5xl font-bold mb-4">Velainow</h1>
+    <p class="text-lg mb-6">Connecting You to Nearby Skilled Workers</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="login.html" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-md">Login</a>
+      <a href="about.html" class="bg-white text-blue-700 hover:bg-blue-100 px-6 py-2 rounded-md">About</a>
+    </div>
+  </div>
+</section>
+
+<!-- Omnidimension Chat Widget -->
+<script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e"></script>
+
+</body>
+</html>

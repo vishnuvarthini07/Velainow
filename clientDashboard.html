@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Velainow – Client Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+    <!-- Firebase Scripts -->
+     <script>
+  const user = JSON.parse(localStorage.getItem("velainowUser"));
+  if (!user) {
+    window.location.href = "login.html";
+  }
+</script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+      import { getDatabase, ref, push, set, update, get, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAWMGmNPOTeTgDAAX1KS1lzLZuGLe13VNY",
+        authDomain: "jobzo-84085.firebaseapp.com",
+        databaseURL: "https://jobzo-84085-default-rtdb.firebaseio.com/",
+        projectId: "jobzo-84085",
+        storageBucket: "jobzo-84085.appspot.com",
+        messagingSenderId: "885298915578",
+        appId: "1:885298915578:web:8fd56ab10110837c808143"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      window.postTask = function (event) {
+        event.preventDefault();
+        const user = JSON.parse(localStorage.getItem("velainowUser"));
+        if (!user) return alert("Login required");
+
+        const skill = document.getElementById('skill').value.trim();
+        const location = document.getElementById('location').value.trim();
+        const description = document.getElementById('description').value.trim();
+        if (!skill || !location || !description) return alert("All fields required");
+
+        const task = {
+          skill,
+          location,
+          description,
+          status: "Unassigned",
+          assignedTo: "",
+          clientId: user.uid
+        };
+
+        const taskRef = push(ref(db, "tasks"));
+        set(taskRef, task).then(() => assignWorker(taskRef.key, task));
+      }
+
+      async function assignWorker(taskId, task) {
+        const snapshot = await get(ref(db, "workers"));
+        let assigned = false;
+        snapshot.forEach(child => {
+          const w = child.val();
+          if (
+            w.skill.toLowerCase() === task.skill.toLowerCase() &&
+            w.pincode === task.location &&
+            w.status === "Available"
+          ) {
+            update(ref(db, "tasks/" + taskId), { assignedTo: child.key, status: "Assigned" });
+            update(ref(db, "workers/" + child.key), { status: "Busy" });
+            document.getElementById("assignedWorker").innerText = `✅ ${w.name} assigned to task!\n📞 Contact: ${w.contact}`;
+            assigned = true;
+          }
+        });
+        if (!assigned) document.getElementById("assignedWorker").innerText = "❌ No available worker found";
+      }
+
+      // ✅ Only release worker assigned to the logged-in client's task
+      window.makeWorkerFree = async function () {
+        const user = JSON.parse(localStorage.getItem("velainowUser"));
+        if (!user) return alert("You must be logged in to perform this action.");
+
+        const taskSnapshot = await get(ref(db, "tasks"));
+        const workerIdsToFree = [];
+
+        taskSnapshot.forEach(task => {
+          const t = task.val();
+          if (t.clientId === user.uid && t.assignedTo) {
+            workerIdsToFree.push({ taskId: task.key, workerId: t.assignedTo });
+          }
+        });
+
+        if (workerIdsToFree.length === 0) {
+          alert("❌ No assigned workers found for your tasks.");
+          return;
+        }
+
+        for (const { taskId, workerId } of workerIdsToFree) {
+          await update(ref(db, "workers/" + workerId), { status: "Available" });
+          await update(ref(db, "tasks/" + taskId), { assignedTo: "", status: "Unassigned" });
+        }
+
+        alert("✅ Assigned workers for your tasks are now marked as free.");
+      }
+
+      // ✅ Show only tasks posted by the logged-in client
+      onValue(ref(db, 'tasks'), snapshot => {
+        const user = JSON.parse(localStorage.getItem("velainowUser"));
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+        if (!user) return;
+
+        snapshot.forEach(child => {
+          const task = child.val();
+          if (task.clientId === user.uid) {
+            const item = document.createElement('li');
+            item.className = "bg-gray-100 p-4 rounded";
+            item.innerHTML = `<strong>${task.skill}</strong> in ${task.location}<br/><span class='text-sm text-gray-600'>${task.description}</span>`;
+            taskList.appendChild(item);
+          }
+        });
+      });
+    </script>
+  </head>
+
+  <body class="bg-gray-50 text-gray-800 font-sans">
+    <script>
+  const user = JSON.parse(localStorage.getItem("velainowUser"));
+  if (!user) {
+    alert("You must be logged in to access the Worker Dashboard.");
+    window.location.href = "login.html";
+  }
+</script>
+
+
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-blue-600 text-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="index.html" class="text-2xl font-bold hover:text-yellow-300 transition">Velainow</a>
+        <div class="hidden md:flex space-x-6 font-medium">
+          <a href="index.html" class="hover:text-yellow-300 transition">Home</a>
+          <a href="about.html" class="hover:text-yellow-300 transition">About</a>
+          <a href="clientDashboard.html" class="hover:text-yellow-300 transition">Client</a>
+          <a href="worker.html" class="hover:text-yellow-300 transition">Worker</a>
+          <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+  Logout
+</button>
+
+        </div>
+        <div class="md:hidden">
+          <button id="menuBtn" class="text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div id="mobileMenu" class="hidden md:hidden bg-blue-700 px-4 py-3">
+        <a href="index.html" class="block py-2 hover:text-yellow-300">Home</a>
+        <a href="about.html" class="block py-2 hover:text-yellow-300">About</a>
+        <a href="clientDashboard.html" class="block py-2 hover:text-yellow-300">Client</a>
+        <a href="worker.html" class="block py-2 hover:text-yellow-300">Worker</a>
+      </div>
+    </nav>
+    <script>
+      document.getElementById("menuBtn").addEventListener("click", () => {
+        document.getElementById("mobileMenu").classList.toggle("hidden");
+      });
+    </script>
+    <style> body { padding-top: 16px; } </style>
+
+    <!-- Hero -->
+    <section class="relative bg-cover bg-center h-[40vh]" style="background-image: url('banner.png');">
+      <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center text-white text-center p-4">
+        <a href="index.html" class="absolute top-4 left-4 text-white bg-gray-800 bg-opacity-60 hover:bg-opacity-90 px-4 py-1 rounded-md text-sm shadow-lg">Home</a>
+        <h1 class="text-4xl font-bold mb-2">Velainow</h1>
+        <p class="text-lg mb-4">Hyperlocal Job Matching Platform</p>
+        <a href="#taskForm" class="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-md">Post a Task</a>
+      </div>
+    </section>
+
+    <!-- Main -->
+    <main class="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-6">
+      <!-- Task Posting -->
+      <section id="taskForm" class="bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Post a Task</h2>
+        <form onsubmit="postTask(event)">
+          <select id="skill" class="w-full mb-3 px-4 py-2 border rounded">
+            <option value="">Select Required Skill</option>
+            <option value="Plumber">Plumber</option>
+            <option value="Electrician">Electrician</option>
+            <option value="Carpenter">Carpenter</option>
+            <option value="Mechanic">Mechanic</option>
+            <option value="Delivery Helper">Delivery Helper</option>
+          </select>
+          <input type="text" id="location" placeholder="Pincode" class="w-full mb-3 px-4 py-2 border rounded" required />
+          <textarea id="description" placeholder="Description" class="w-full mb-3 px-4 py-2 border rounded" required></textarea>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded w-full hover:bg-blue-700">Post Task</button>
+          <div id="assignedWorker" class="mt-2 font-semibold text-green-600"></div>
+        </form>
+        <button onclick="makeWorkerFree()" class="mt-4 bg-yellow-500 text-white px-4 py-2 rounded w-full hover:bg-yellow-600">
+          Mark My Task’s Worker as Free
+        </button>
+      </section>
+
+      <!-- Info -->
+      <section class="bg-white p-6 rounded-xl shadow-md flex flex-col justify-center">
+        <h2 class="text-xl font-semibold mb-4">Your Need, Our Service</h2>
+        <p class="text-gray-700 italic mb-3">"Empowering neighborhoods, one task at a time."</p>
+        <p class="text-gray-700">Velainow ensures skilled workers reach you faster, safer, and smarter using real-time tech.</p>
+      </section>
+
+      <!-- Dashboard -->
+      <section class="bg-white p-6 rounded-xl shadow-md col-span-2">
+        <h2 class="text-xl font-semibold mb-4">Dashboard – Posted Tasks</h2>
+        <ul id="taskList" class="space-y-2"></ul>
+      </section>
+    </main>
+
+    <footer class="text-center text-sm py-6 text-gray-500">© 2025 Velainow. All rights reserved.</footer>
+    <script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e"></script>
+    <script>
+  function logout() {
+    localStorage.removeItem("velainowUser");
+    window.location.href = "login.html";
+  }
+</script>
+<script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Velainow – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Firebase Auth & Role Routing -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWMGmNPOTeTgDAAX1KS1lzLZuGLe13VNY",
+      authDomain: "jobzo-84085.firebaseapp.com",
+      projectId: "jobzo-84085",
+      storageBucket: "jobzo-84085.appspot.com",
+      messagingSenderId: "885298915578",
+      appId: "1:885298915578:web:8fd56ab10110837c808143"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    window.loginUser = function(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          localStorage.setItem("velainowUser", JSON.stringify({ uid: user.uid, email: user.email }));
+
+          const userRef = ref(db, "users/" + user.uid);
+          get(userRef).then(snapshot => {
+            if (snapshot.exists()) {
+              const role = snapshot.val().role;
+              if (role === "worker") {
+                window.location.href = "workerDashboard.html"; // <-- Final worker dashboard page
+              } else {
+                window.location.href = "clientDashboard.html";
+              }
+            } else {
+              alert("❌ User role not found.");
+            }
+          });
+        })
+        .catch((error) => {
+          alert("❌ Login failed: " + error.message);
+        });
+    };
+  </script>
+</head>
+
+<body class="bg-cover bg-center min-h-screen flex items-center justify-center" style="background-image: url('bg.png'); font-family: 'Roboto', sans-serif;">
+  <!-- Home Button -->
+<div class="absolute top-4 right-4">
+  <a href="index.html" class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">
+    Home
+  </a>
+</div>
+
+  <div class="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-full max-w-md">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">Velainow Login</h1>
+    <form onsubmit="loginUser(event)">
+      <input id="email" type="email" placeholder="Email" class="w-full mb-4 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+      <input id="password" type="password" placeholder="Password" class="w-full mb-6 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition">Login</button>
+    </form>
+    <p class="mt-4 text-sm text-center text-gray-600">
+      Don't have an account? <a href="signup.html" class="text-blue-600 hover:underline">Sign up</a>
+    </p>
+  </div>
+  <script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>

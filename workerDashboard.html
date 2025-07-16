@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velainow – Worker Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-blue-600 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold hover:text-yellow-300 transition">Velainow</a>
+    <div class="hidden md:flex space-x-6 font-medium">
+      <a href="index.html" class="hover:text-yellow-300 transition">Home</a>
+      <a href="about.html" class="hover:text-yellow-300 transition">About</a>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-4 py-1 rounded text-white">Logout</button>
+    </div>
+    <div class="md:hidden">
+      <button id="menuBtn" class="text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden bg-blue-700 px-4 py-3">
+    <a href="index.html" class="block py-2 hover:text-yellow-300">Home</a>
+    <a href="about.html" class="block py-2 hover:text-yellow-300">About</a>
+    <button onclick="logout()" class="block py-2 bg-red-500 hover:bg-red-600 text-white rounded w-full text-left mt-2">Logout</button>
+  </div>
+</nav>
+
+<script>
+  document.getElementById("menuBtn").addEventListener("click", () => {
+    document.getElementById("mobileMenu").classList.toggle("hidden");
+  });
+</script>
+
+<style> body { padding-top: 16px; } </style>
+
+<!-- Hero Section -->
+<section class="relative bg-cover bg-center h-[40vh]" style="background-image: url('banner.png');">
+  <div class="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-center items-center text-white text-center p-4">
+    <h1 class="text-4xl font-bold mb-2">Welcome to Velainow</h1>
+    <p class="text-lg mb-4">Worker Dashboard</p>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-6">
+  <!-- Current Task -->
+  <section class="bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Your Current Task</h2>
+    <div id="currentTask" class="text-gray-700 italic">Loading...</div>
+  </section>
+
+  <!-- Worker Status -->
+  <section class="bg-white p-6 rounded-xl shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Your Status</h2>
+    <div id="workerStatus" class="text-green-600 font-bold">Checking...</div>
+  </section>
+
+  <!-- Task History -->
+  <section class="bg-white p-6 rounded-xl shadow-md col-span-2">
+    <h2 class="text-xl font-semibold mb-4">Task History</h2>
+    <ul id="taskHistory" class="space-y-2"></ul>
+  </section>
+</main>
+
+<footer class="text-center text-sm py-6 text-gray-500">© 2025 Velainow. All rights reserved.</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWMGmNPOTeTgDAAX1KS1lzLZuGLe13VNY",
+    authDomain: "jobzo-84085.firebaseapp.com",
+    databaseURL: "https://jobzo-84085-default-rtdb.firebaseio.com/",
+    projectId: "jobzo-84085",
+    storageBucket: "jobzo-84085.appspot.com",
+    messagingSenderId: "885298915578",
+    appId: "1:885298915578:web:8fd56ab10110837c808143"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const user = JSON.parse(localStorage.getItem("velainowUser"));
+  if (!user) {
+    alert("You must be logged in to access the Worker Dashboard.");
+    window.location.href = "login.html";
+  }
+
+  const currentTaskEl = document.getElementById("currentTask");
+  const taskHistoryEl = document.getElementById("taskHistory");
+  const workerStatusEl = document.getElementById("workerStatus");
+
+  // ✅ Show Worker Status
+  get(ref(db, 'users/' + user.uid)).then(snapshot => 
+ {
+    if (snapshot.exists()) {
+      const worker = snapshot.val();
+      if (worker.status) {
+        workerStatusEl.innerText = worker.status;
+      } else {
+        workerStatusEl.innerText = "❌ Status not found";
+      }
+    } else {
+      workerStatusEl.innerText = "❌ Worker details not found";
+    }
+  });
+
+  // ✅ Load Tasks Assigned to Worker
+  onValue(ref(db, 'tasks'), snapshot => {
+    currentTaskEl.innerHTML = "No active task";
+    taskHistoryEl.innerHTML = "";
+
+    snapshot.forEach(child => {
+      const task = child.val();
+      if (task.assignedTo === user.uid) {
+        const li = document.createElement('li');
+        li.className = "bg-gray-100 p-4 rounded";
+        li.innerHTML = `<strong>${task.skill}</strong> in ${task.location}<br/><span class="text-sm text-gray-600">${task.description}</span>`;
+
+        if (task.status === "Assigned") {
+          currentTaskEl.innerHTML = li.innerHTML;
+        }
+
+        taskHistoryEl.appendChild(li);
+      }
+    });
+  });
+
+  // ✅ Logout Function
+  window.logout = function () {
+    localStorage.removeItem("velainowUser");
+    window.location.href = "login.html";
+  }
+</script>
+<script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>

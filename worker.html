@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velainow – Workers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <style> body { padding-top: 64px; font-family: 'Roboto', sans-serif; } </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- ✅ Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-blue-600 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold hover:text-yellow-300 transition">Velainow</a>
+    <div class="hidden md:flex space-x-6 font-medium">
+      <a href="index.html" class="hover:text-yellow-300 transition">Home</a>
+      <a href="about.html" class="hover:text-yellow-300 transition">About</a>
+      <a href="worker.html" class="hover:text-yellow-300 transition">Worker List</a>
+      <a href="login.html" class="hover:text-yellow-300 transition">Login</a>
+    </div>
+    <div class="md:hidden">
+      <button id="menuBtn" class="text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden bg-blue-700 px-4 py-3">
+    <a href="index.html" class="block py-2 hover:text-yellow-300">Home</a>
+    <a href="about.html" class="block py-2 hover:text-yellow-300">About</a>
+    <a href="worker.html" class="block py-2 hover:text-yellow-300">Worker List</a>
+    <a href="login.html" class="block py-2 hover:text-yellow-300">Login</a>
+  </div>
+</nav>
+
+<!-- 🍔 Mobile Menu Toggle -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("menuBtn").addEventListener("click", () => {
+      document.getElementById("mobileMenu").classList.toggle("hidden");
+    });
+  });
+</script>
+
+<!-- 👷‍♂️ Workers Section -->
+<section class="px-4 py-10">
+  <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">All Registered Workers</h1>
+  <ul id="workerList" class="max-w-3xl mx-auto space-y-4"></ul>
+</section>
+
+<!-- 🔥 Firebase Logic -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWMGmNPOTeTgDAAX1KS1lzLZuGLe13VNY",
+    authDomain: "jobzo-84085.firebaseapp.com",
+    databaseURL: "https://jobzo-84085-default-rtdb.firebaseio.com/",
+    projectId: "jobzo-84085",
+    storageBucket: "jobzo-84085.appspot.com",
+    messagingSenderId: "885298915578",
+    appId: "1:885298915578:web:8fd56ab10110837c808143"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    const list = document.getElementById("workerList");
+    const usersRef = ref(db, "users");
+
+    onValue(usersRef, snapshot => {
+      list.innerHTML = "";
+      snapshot.forEach(child => {
+        const user = child.val();
+        if (user.role === "worker") {
+          const li = document.createElement("li");
+          li.className = "bg-white p-4 rounded-xl shadow";
+          li.innerHTML = `
+            <strong class="text-lg">${user.name || "Unnamed"}</strong> – ${user.skill || "No Skill"}<br/>
+            📍 ${user.pincode || "No Pincode"}<br/>
+            📞 ${user.contact || "No Contact"}<br/>
+            Status: <span class="font-semibold ${user.status === 'Available' ? 'text-green-600' : 'text-red-600'}">
+              ${user.status || "Unknown"}
+            </span>
+          `;
+          list.appendChild(li);
+        }
+      });
+    });
+  });
+</script>
+<script id="omnidimension-web-widget" async src="https://backend.omnidim.io/web_widget.js?secret_key=77003dbda0f3a1ee155d69cb237d319e" ></script>
+</body>
+</html>
